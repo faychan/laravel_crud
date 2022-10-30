@@ -39,6 +39,7 @@ class OrderController extends Controller
         foreach ($cart as $item) {
             $order->items()->create([
                 'price' => $item->sell_price * $item->pivot->quantity,
+                'earning' => ($item->sell_price - $item -> buy_price) * $item->pivot->quantity ,
                 'quantity' => $item->pivot->quantity,
                 'product_id' => $item->id,
             ]);
@@ -48,6 +49,7 @@ class OrderController extends Controller
         $request->user()->cart()->detach();
         $order->payments()->create([
             'amount' => $request->amount,
+            'earning' => $request->earning,
             'user_id' => $request->user()->id,
         ]);
         return 'success';

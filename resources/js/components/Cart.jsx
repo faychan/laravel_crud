@@ -13,7 +13,8 @@ class Cart extends Component {
             customers: [],
             barcode: "",
             search: "",
-            customer_id: ""
+            customer_id: "",
+            earning: 0,
         };
 
         this.loadCart = this.loadCart.bind(this);
@@ -95,11 +96,15 @@ class Cart extends Component {
             .catch(err => {
                 Swal.fire("Error!", err.response.data.message, "error");
             });
+        getEarning();
     }
-
     getTotal(cart) {
         const total = cart.map(c => c.pivot.quantity * c.sell_price);
         return sum(total).toFixed(2);
+    }
+    getEarning(cart) {
+        const totalEarning = cart.map(c => c.pivot.quantity * (c.sell_price - c.buy_price));
+        this.setState({ earning: sum(totalEarning).toFixed(2) });
     }
     handleClickDelete(product_id) {
         axios
@@ -108,11 +113,13 @@ class Cart extends Component {
                 const cart = this.state.cart.filter(c => c.id !== product_id);
                 this.setState({ cart });
             });
+        getEarning();
     }
     handleEmptyCart() {
         axios.post("/admin/cart/empty", { _method: "DELETE" }).then(res => {
             this.setState({ cart: [] });
         });
+        getEarning();
     }
     handleChangeSearch(event) {
         const search = event.target.value;
@@ -178,7 +185,8 @@ class Cart extends Component {
             confirmButtonText: 'Send',
             showLoaderOnConfirm: true,
             preConfirm: (amount) => {
-                return axios.post('/admin/orders', { customer_id: this.state.customer_id, amount }).then(res => {
+                this.getEarning(this.state.cart);
+                return axios.post('/admin/orders', { customer_id: this.state.customer_id, amount, earning: this.state.earning }).then(res => {
                     this.loadCart();
                     return res.data;
                 }).catch(err => {

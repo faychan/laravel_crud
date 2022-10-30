@@ -53,6 +53,13 @@ class Order extends Model
         })->sum();
     }
 
+    public function receivedEarning()
+    {
+        return $this->payments->map(function ($i){
+            return $i->earning;
+        })->sum();
+    }
+
     public function formattedReceivedAmount()
     {
         return number_format($this->receivedAmount(), 2);
